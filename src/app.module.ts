@@ -8,8 +8,7 @@ import { LogbookModule } from './logbook/logbook.module';
 import { ChronometryModule } from './chronometry/chronometry.module';
 import { CrewModule } from './crew/crew.module';
 import { CrewMember } from './crew/entities/crew-member.entity';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './auth/guards/roles.guard';
+
 import { TrainingFlightModule } from './training-flight/training-flight.module';
 
 @Module({

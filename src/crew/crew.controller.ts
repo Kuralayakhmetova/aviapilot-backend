@@ -1,14 +1,23 @@
 import {
-  Controller, Get, Post, Put, Delete,
-  Body, Param, Query, ParseIntPipe,
-  UseGuards, HttpCode, HttpStatus
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { CrewService } from './crew.service';
 import { CreateCrewDto } from './dto/create-crew.dto';
 import { UpdateCrewDto } from './dto/update-crew.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles, UserRole } from '../auth/decorators/roles.decoratos';
+import { Roles, UserRole } from '../auth/decorators/roles.decorator';
 @Controller('crew')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CrewController {
@@ -23,7 +32,13 @@ export class CrewController {
     @Query('sortBy') sortBy?: string,
     @Query('order') order?: 'ASC' | 'DESC',
   ) {
-    return this.crewService.findAll({ search, category, status, sortBy, order });
+    return this.crewService.findAll({
+      search,
+      category,
+      status,
+      sortBy,
+      order,
+    });
   }
 
   // ✅ Все авторизованные — просмотр одного

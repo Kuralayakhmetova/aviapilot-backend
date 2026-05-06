@@ -1,0 +1,407 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  password       String
+  firstName      String
+  lastName       String
+  role           Role        @default(USER)
+  isActive       Boolean       @default(true)
+  refreshToken   String?
+  lastLogin      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  profile        PilotProfile?
+  logbookEntries LogbookEntry[]
+  documents      Document[]
+  flightPlans    FlightPlan[]
+  chronoDayLogs  ChronoDayLog[]
+  TrainingFlight TrainingFlight[]
+
+
+
+
+  @@map("users")
+}
+
+model PilotProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  licenseNumber    String?
+  licenseType      String?
+  licenseExpiry    DateTime?
+  medicalExpiry    DateTime?
+  totalFlightHours Float     @default(0)
+  phone            String?
+  address          String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("pilot_profiles")
+}
+
+// ─── Лётный состав авиационного отдела ───────────────────────────────────────
+
+model CrewMember {
+  id               String    @id @default(cuid())
+
+  // Основные данные
+  category         String    // PILOT | FLIGHT_ATTENDANT | ENGINEER | TECHNICIAN | MECHANIC
+   position  String  @default("")  // КВС | ВП | ЛИ | БП | БИ | БТ | БМ
+  rank      String  @default("")   // Воинское звание
+  firstName        String
+  lastName         String
+  middleName       String?
+  birthDate        DateTime?
+  email            String?   @unique
+  phone            String?
+  address          String?
+  photo            String?   // URL фото
+
+  // Документы
+ // licenseNumber    String?   // Номер свидетельства
+  licenseType      String?   // ATPL-A | CPL-A | PPL-A | FE | CC | AM
+  licenseExpiry    DateTime?
+  medicalCert      String?   // Номер медсвидетельства
+  medicalExpiry    DateTime?
+  medicalClass     Int?      // 1 | 2 | 3
+
+  // Образование
+  education        String?
+  graduationYear   Int?
+
+  // Текущие допуски (типы ВС)
+ // acTypePrimary    String?   // Основной тип: Су-30, Ан-26 и т.д.
+  //acTypeSecondary  String?   // Дополнительный тип
+ // acClass          String?   // Класс: 1 | 2 | 3
+
+acTypePrimaryId String?
+acTypeSecondaryId String?
+
+acTypePrimary String?
+acTypeSecondary String?
+
+primaryAircraft   AircraftType? @relation("PrimaryAircraft", fields: [acTypePrimaryId], references: [id])
+secondaryAircraft AircraftType? @relation("SecondaryAircraft", fields: [acTypeSecondaryId], references: [id])
+  
+
+  // Налёт — синхронизируется из LogbookEntry
+  totalFlightHours Float     @default(0)   // Общий на всех типах
+  totalHoursPrimary Float    @default(0)   // На основном типе
+  totalHoursYear   Float     @default(0)   // В текущем году
+  totalPicHours    Float     @default(0)   // Командирский налёт
+  totalSicHours    Float     @default(0)   // Второго пилота
+  totalNightHours  Float     @default(0)   // Ночной
+  totalIfrHours    Float     @default(0)   // IFR
+  totalLandings    Int       @default(0)   // Посадки всего
+
+  // Даты допусков и проверок
+  checkRideDate    DateTime? // Дата последней проверки техники пилотирования
+  simCheckDate     DateTime? // Тренажёрная проверка
+  lineCheckDate    DateTime? // Маршрутная проверка
+  profCheckDate    DateTime? // Проверка профессиональной подготовки
+
+  // Типовые допуски (авиационный стандарт)
+  allowNight       Boolean   @default(false) // К ночным полётам
+  allowImc         Boolean   @default(false) // К полётам в ИМУ
+  allowSmu         Boolean   @default(false) // К полётам в СМУ
+  allowUmp         Boolean   @default(false) // К полётам УМП
+  allowMountain    Boolean   @default(false) // К горным аэродромам
+  allowSeaplane    Boolean   @default(false) // Гидро
+  allowCargo       Boolean   @default(false) // К перевозке грузов
+  allowDangerous   Boolean   @default(false) // К опасным грузам
+  allowInstructor  Boolean   @default(false) // Инструкторский допуск
+  allowExaminer    Boolean   @default(false) // Экзаменационный допуск
+
+  // Служебные данные
+  isActive         Boolean   @default(true)
+  hireDate         DateTime?
+  remarks          String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("crew_members")
+}
+
+model LogbookEntry {
+  id               String   @id @default(cuid())
+  userId           String
+
+  acType           String
+  acReg            String
+
+  date             DateTime
+  arrDate          DateTime?
+  depIcao          String
+  arrIcao          String
+  depTime          String
+  arrTime          String
+
+  totalTime        Float
+  picTime          Float?
+  sicTime          Float?
+  nightTime        Float?
+  ifrTime          Float?
+  actualImc        Float?
+  simInstrument    Float?
+
+  leftSeatPerson   String
+  leftSeatPos      String
+  rightSeatPerson  String
+  rightSeatPos     String
+
+  flightAttendants String[] @default([])
+  engineers        String[] @default([])
+  technicians      String[] @default([])
+  mechanics        String[] @default([])
+
+leftSeatCrewId   String?
+rightSeatCrewId  String?
+attendantIds     String[]  @default([])
+engineerIds      String[]  @default([])
+technicianIds    String[]  @default([])
+
+  exerciseNumber   String?
+  maxAltitude      Int?
+  minAltitude      Int?
+
+  cloudiness       Int?
+  cloudBase        Int?
+  cloudTop         Int?
+  visibility       Int?
+
+  approachType     String?
+
+  landingsDay      Int      @default(0)
+  landingsNight    Int      @default(0)
+
+  passengers       Int?
+  cargo            Int?
+
+  operationType    String
+  role             String
+  rules            String
+  status           String   @default("COMPLETED")
+  crossCountry     Boolean  @default(true)
+  remarks          String?
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("logbook_entries")
+}
+
+model Document {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String
+  name        String
+  fileUrl     String?
+  issueDate   DateTime?
+  expiryDate  DateTime?
+  isValid     Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model FlightPlan {
+  id              String    @id @default(cuid())
+  userId          String
+  flightNumber    String?
+  departure       String
+  arrival         String
+  alternate       String?
+  departureTime   DateTime
+  aircraftType    String
+  aircraftReg     String
+  route           String?
+  altitude        String?
+  speed           String?
+  endurance       String?
+  fuelOnBoard     Float?
+  pobCount        Int?
+  status          String    @default("DRAFT")
+  remarks         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weather         WeatherSnapshot[]
+
+  @@map("flight_plans")
+}
+
+model WeatherSnapshot {
+  id            String    @id @default(cuid())
+  flightPlanId  String
+  station       String
+  raw           String
+  fetchedAt     DateTime  @default(now())
+
+  flightPlan    FlightPlan @relation(fields: [flightPlanId], references: [id], onDelete: Cascade)
+
+  @@map("weather_snapshots")
+}
+
+model ChronoDayLog {
+  id        String         @id @default(cuid())
+  userId    String
+  date      String         // "YYYY-MM-DD"
+  unit      String         @default("ККМЖ")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rows      ChronoRow[]
+
+  @@map("chrono_day_logs")
+}
+
+model ChronoRow {
+  id             String       @id @default(cuid())
+  dayLogId       String
+  num            Int
+  acType         String       @default("")
+  acReg          String       @default("")
+  commanderNum   String       @default("")
+  commander      String       @default("")
+  crew           String       @default("")
+  exerciseNum    String       @default("")
+  takeoffH       String       @default("")
+  takeoffM       String       @default("")
+  landingH       String       @default("")
+  landingM       String       @default("")
+  flightH        String       @default("")
+  flightM        String       @default("")
+  kmzTotalH      String       @default("-")
+  kmzTotalM      String       @default("-")
+  kmzCloudsH     String       @default("-")
+  kmzCloudsM     String       @default("-")
+  landingsCount  String       @default("1")
+  touchdownCount String       @default("1")
+  closedCabinH   String       @default("-")
+  closedCabinM   String       @default("-")
+  weather        String       @default("-/-")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  dayLog         ChronoDayLog @relation(fields: [dayLogId], references: [id], onDelete: Cascade)
+
+  @@map("chrono_rows")
+}
+
+// Добавь эту модель в конец schema.prisma (перед последней закрывающей скобкой)
+
+model TrainingFlight {
+  id               String   @id @default(cuid())
+  userId           String
+
+  // ─── Основные данные ──────────────────────────────────────────────────────
+  flightNumber     String                    // Номер полёта (произвольная строка)
+  callSign         String                    // Позывной борта
+  acType           String                    // Тип ВС
+  acReg            String                    // Бортовой номер
+  timeOfDay        String   @default("DAY")  // DAY | NIGHT
+
+  // ─── Экипаж (ID из crew_members) ─────────────────────────────────────────
+  leftSeatCrewId   String?                   // КВС или ЛИ
+  leftSeatPos      String   @default("КВС")  // КВС | ЛИ
+  rightSeatCrewId  String?                   // ВП или ЛИ
+  rightSeatPos     String   @default("ВП")   // ВП | ЛИ
+  landingSeatPos   String?                   // С какого кресла выполнена посадка: LEFT | RIGHT
+
+  attendantIds     String[] @default([])     // Бортпроводники
+  engineerIds      String[] @default([])     // Бортинженеры
+  technicianIds    String[] @default([])     // Борттехники
+  mechanicIds      String[] @default([])     // Бортмеханики
+
+  // ─── Имена для отображения (денормализация) ───────────────────────────────
+  leftSeatName     String   @default("")
+  rightSeatName    String   @default("")
+  attendantNames   String[] @default([])
+  engineerNames    String[] @default([])
+  technicianNames  String[] @default([])
+  mechanicNames    String[] @default([])
+
+  // ─── Задание ──────────────────────────────────────────────────────────────
+  exerciseNumber   String?                   // Номер упражнения
+
+  // ─── Время полёта ─────────────────────────────────────────────────────────
+  takeoffDate      String                    // YYYY-MM-DD
+  takeoffTime      String                    // HH:MM
+  landingDate      String                    // YYYY-MM-DD
+  landingTime      String                    // HH:MM
+  totalTime        Int      @default(0)      // Общий налёт (минуты, считается авто)
+
+  // ─── Спецналёт ────────────────────────────────────────────────────────────
+  closedCabinTime  Int      @default(0)      // Закрытая кабина (минуты)
+  smuTotal         Int      @default(0)      // СМУ всего (минуты)
+  smuClouds        Int      @default(0)      // СМУ в облаках (минуты)
+
+  // ─── Высота ───────────────────────────────────────────────────────────────
+  altMax           Int?                      // Макс. высота (м или ft)
+  altMin           Int?                      // Мин. высота
+
+  // ─── Метеоусловия ─────────────────────────────────────────────────────────
+  visibility       Int?                      // Видимость 0–10
+  cloudiness       Int?                      // Облачность 0–10
+  cloudTop         Int?                      // Верхняя граница облаков
+  cloudBase        Int?                      // Нижняя граница облаков
+  takeoffMinimum   Boolean  @default(false)  // Взлёт при взлётном минимуме погоды
+
+  // ─── Способ управления (галочки) ─────────────────────────────────────────
+  approachRmsA     Boolean  @default(false)  // РМС/А
+  approachRmsD     Boolean  @default(false)  // РМС/Д
+  approachRmsR     Boolean  @default(false)  // РМС/Р
+  approachViz      Boolean  @default(false)  // ВИЗ
+
+  // ─── Посадки ──────────────────────────────────────────────────────────────
+  approachCount    Int      @default(0)      // Количество заходов
+  landingsCount    Int      @default(0)      // Количество посадок
+
+  // ─── Служебные ───────────────────────────────────────────────────────────
+  remarks          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("training_flights")
+}
+
+model AircraftType {
+  id String @id @default(cuid())
+  code String @unique
+  name String?
+  category String?
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  crewPrimary   CrewMember[] @relation("PrimaryAircraft")
+  crewSecondary CrewMember[] @relation("SecondaryAircraft")
+
+  @@map("aircraft_types")
+}

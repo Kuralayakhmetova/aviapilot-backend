@@ -25,4 +25,6 @@ export class PrismaService
     await this.$disconnect();
     console.log('🔌 Prisma disconnected');
   }
+
+  
 }

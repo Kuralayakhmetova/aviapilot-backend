@@ -42,7 +42,7 @@ app.setGlobalPrefix('api');
 
 
   
-  await app.listen(3001);
+ await app.listen(process.env.PORT || 3001);
   logger.log('🚀 AviaPilot Backend running on http://localhost:3001');
   logger.log('📚 Swagger UI: http://localhost:3001/swagger');
 }

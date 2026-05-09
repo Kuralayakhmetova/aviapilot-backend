@@ -13,12 +13,24 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // ─── CORS с поддержкой cookies ─────────────────────────────────────────────
-  app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+ app.enableCors({
+  origin: (origin, callback) => {
+    const allowed = [
+      'http://localhost:3000',
+      'https://aviapilot-frontend.vercel.app',
+    ];
+    
+    // Разрешаем все поддомены vercel.app
+    if (!origin || allowed.includes(origin) || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
 
   // ─── Validation ────────────────────────────────────────────────────────────
   app.useGlobalPipes(

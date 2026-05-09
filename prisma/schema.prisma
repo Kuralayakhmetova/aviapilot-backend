@@ -4,12 +4,32 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+   url= env("DATABASE_URL")
 }
 
 enum Role {
   USER
   ADMIN
+}
+
+enum CrewCategory {
+  COMMANDER        
+  SECOND_PILOT     
+  INSTRUCTOR      
+  ENGINEER         
+  TECHNICIAN      
+  MECHANIC         
+  FLIGHT_ATTENDANT 
+
+}
+
+enum CrewRank {
+ LIEUTENANT      
+  SENIOR_LIEUTENANT 
+  CAPTAIN          
+  MAJOR             
+  LIEUTENANT_COLONEL
+  COLONEL           
 }
 
 model User {
@@ -62,9 +82,9 @@ model CrewMember {
   id               String    @id @default(cuid())
 
   // Основные данные
-  category         String    // PILOT | FLIGHT_ATTENDANT | ENGINEER | TECHNICIAN | MECHANIC
-   position  String  @default("")  // КВС | ВП | ЛИ | БП | БИ | БТ | БМ
-  rank      String  @default("")   // Воинское звание
+  category         CrewCategory
+  position         String  @default("")  // КВС | ВП | ЛИ | БП | БИ | БТ | БМ
+  rank             CrewRank  @default(LIEUTENANT)   // Воинское звание
   firstName        String
   lastName         String
   middleName       String?

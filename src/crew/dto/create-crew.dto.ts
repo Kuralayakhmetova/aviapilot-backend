@@ -1,45 +1,59 @@
 import {
-  IsEmail, IsNotEmpty, IsOptional,
-  IsString, IsNumber, IsEnum, IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsBoolean,
 } from 'class-validator';
-import { CrewCategory, CrewRank } from '../entities/crew-member.entity';
-
-export { CrewCategory };
+import { CrewCategory, CrewRank } from '@prisma/client';
 
 export class CreateCrewDto {
-  @IsNotEmpty() @IsString()
+  @IsNotEmpty()
+  @IsString()
   firstName: string;
 
-  @IsNotEmpty() @IsString()
+  @IsNotEmpty()
+  @IsString()
   lastName: string;
 
   @IsEmail()
   email: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   phone?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   position?: string;
 
-  @IsOptional() @IsEnum(CrewCategory)
+  @IsOptional()
+  @IsEnum(CrewCategory)
   category?: CrewCategory;
 
-  @IsOptional() @IsBoolean()
+  @IsOptional()
+  @IsBoolean()
   isActive?: boolean;
 
-  @IsOptional() @IsEnum(CrewRank)
+  @IsOptional()
+  @IsEnum(CrewRank)
   rank?: CrewRank;
 
-  @IsOptional() @IsNumber()
+  @IsOptional()
+  @IsNumber()
   totalFlightHours?: number;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   acTypePrimary?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   birthDate?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   licenseExpiry?: string;
 }

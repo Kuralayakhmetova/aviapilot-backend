@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PassportModule } from '@nestjs/passport'; // ← добавь импорт
-import { CrewMember } from './entities/crew-member.entity';
+import { PassportModule } from '@nestjs/passport';
+
 import { CrewService } from './crew.service';
 import { CrewController } from './crew.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([CrewMember]),
-    PassportModule, // ← добавь сюда
+    PassportModule,
   ],
   controllers: [CrewController],
   providers: [CrewService],

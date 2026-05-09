@@ -180,22 +180,22 @@ export class AuthController {
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
-      secure: this.IS_PRODUCTION,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       path: '/',
       maxAge: this.ACCESS_MAX_AGE,
     });
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: this.IS_PRODUCTION,
-      sameSite: 'strict',
+      secure: true,
+      sameSite: 'none',
       path: '/',
       maxAge: this.REFRESH_MAX_AGE,
     });
   }
 
-  private clearCookies(res: Response) {
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
-  }
+ private clearCookies(res: Response) {
+  res.clearCookie('accessToken', { path: '/', sameSite: 'none', secure: true });
+  res.clearCookie('refreshToken', { path: '/', sameSite: 'none', secure: true });
+}
 }
